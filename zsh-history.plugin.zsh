@@ -1,5 +1,5 @@
 #!/usr/bin/env zsh
-# Standarized $0 handling, following:
+# Standardized $0 handling, following:
 # https://github.com/zdharma/Zsh-100-Commits-Club/blob/master/Zsh-Plugin-Standard.adoc
 0="${ZERO:-${${0:#$ZSH_ARGZERO}:-${(%):-%N}}}"
 0="${${(M)0:#/*}:-$PWD/$0}"
@@ -10,16 +10,18 @@ function zsh_history {
   zparseopts -E c=clear l=list
 
   if [[ -n "$clear" ]]; then
-    # if -c provided, clobber the history file
-    echo -n >| "$HISTFILE"
+    # if -c provided, truncate the history file and push a fresh fc stack
+    # so the current shell stops writing into the old file contents
+    : >| "$HISTFILE"
     fc -p "$HISTFILE"
-    echo >&2 History file deleted.
+    print -ru2 -- "History file deleted."
   elif [[ -n "$list" ]]; then
     # if -l provided, run as if calling `fc' directly
     builtin fc "$@"
   else
-    # unless a number is provided, show all history events (starting from 1)
-    [[ ${@[-1]-} = *[0-9]* ]] && builtin fc -l "$@" || builtin fc -l "$@" 1
+    # unless a numeric arg is provided, show all events (starting from 1).
+    # Accept bare digits or a negative-prefixed count (e.g. `history -10`).
+    [[ ${@[-1]-} = (-|)<-> ]] && builtin fc -l "$@" || builtin fc -l "$@" 1
   fi
 }
 
@@ -30,13 +32,13 @@ case ${HIST_STAMPS-} in
   "dd.mm.yyyy") alias history='zsh_history -E' ;;
   "yyyy-mm-dd") alias history='zsh_history -i' ;;
   "") alias history='zsh_history' ;;
-  *) alias history="zsh_history -t '$HIST_STAMPS'" ;;
+  *) alias history="zsh_history -t ${(q)HIST_STAMPS}" ;;
 esac
 
 # History file configuration
-[ -z "$HISTFILE" ] && HISTFILE="$HOME/.zsh_history"
-[ "$HISTSIZE" -lt 50000 ] && HISTSIZE=50000
-[ "$SAVEHIST" -lt 10000 ] && SAVEHIST=10000
+[[ -z "${HISTFILE-}" ]] && HISTFILE="$HOME/.zsh_history"
+[[ ${HISTSIZE:-0} -lt 50000 ]] && HISTSIZE=50000
+[[ ${SAVEHIST:-0} -lt 10000 ]] && SAVEHIST=10000
 
 # History command configuration
 setopt extended_history       # record timestamp of command in HISTFILE
