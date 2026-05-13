@@ -6,13 +6,29 @@ on:
   pull_request:
 
 jobs:
-  zsh-syntax-and-load:
-    runs-on: ubuntu-latest
+  smoke:
+    name: smoke (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install zsh
+      - name: Install zsh + fzf (Linux)
+        if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y zsh fzf
+
+      - name: Install fzf (macOS — zsh is preinstalled)
+        if: runner.os == 'macOS'
+        run: brew install fzf
+
+      - name: Record toolchain
+        run: |
+          zsh --version
+          awk --version 2>/dev/null | head -n1 || awk 'BEGIN{print "BSD awk"}'
 
       - name: Syntax check
         run: zsh -n zsh-history.plugin.zsh
@@ -67,18 +83,31 @@ jobs:
             zsh_history --top 5
           ')
           echo "$out"
-          echo "$out" | head -n1 | grep -qE '^\s*3 git$'
-          echo "$out" | sed -n '2p'   | grep -qE '^\s*2 ls$'
+          # Trim whitespace before comparing — macOS `uniq -c` and GNU `uniq -c`
+          # use different leading padding widths.
+          first=$(echo "$out" | sed -n '1p' | awk '{print $1, $2}')
+          second=$(echo "$out" | sed -n '2p' | awk '{print $1, $2}')
+          [ "$first"  = "3 git" ]
+          [ "$second" = "2 ls"  ]
 
-  shellcheck-zsh-syntax-only:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      # shellcheck has no zsh mode; we just confirm `zsh -n` is enough by
-      # asserting the file is parsed by zsh itself. This job is here so a
-      # future contributor adding a bash-only construct gets a visible
-      # second signal: zsh on macOS may differ from Linux.
-      - name: Install zsh
-        run: sudo apt-get update && sudo apt-get install -y zsh
-      - name: Parse with --emulate sh (catches some bash-only syntax)
-        run: zsh -n zsh-history.plugin.zsh
+      - name: history -d rewrites HISTFILE without a target entry
+        run: |
+          tmp=$(mktemp)
+          cat > "$tmp" <<EOF
+          : 1:0;echo hello
+          : 2:0;git status
+          : 3:0;curl --token=SECRET
+          : 4:0;ls -la
+          EOF
+          zsh -c '
+            HISTFILE='"$tmp"'
+            setopt extended_history
+            fc -R $HISTFILE
+            source ./zsh-history.plugin.zsh
+            zsh_history -d 3
+          '
+          # The sensitive command must be gone; the others must remain.
+          ! grep -q 'curl --token=SECRET' "$tmp"
+          grep -q 'echo hello'  "$tmp"
+          grep -q 'git status'  "$tmp"
+          grep -q 'ls -la'      "$tmp"
