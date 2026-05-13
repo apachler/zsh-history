@@ -1,0 +1,38 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: tests + coverage (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    env:
+      COVERAGE_MIN: 80
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install zsh (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y zsh
+
+      # macOS ships zsh; no install needed.
+
+      - name: Toolchain
+        run: zsh --version
+
+      - name: Run test suite
+        run: zsh tests/run.zsh
+
+      - name: Coverage gate (>= ${{ env.COVERAGE_MIN }}%)
+        env:
+          VERBOSE: 1
+        run: zsh tests/coverage.zsh
