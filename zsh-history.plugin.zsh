@@ -147,6 +147,7 @@ add-zsh-hook zshaddhistory _zsh_history_filter
 # dependency-free by default; fzf only becomes part of the surface when both
 # the flag is on AND fzf is on $PATH AND the shell is interactive (has zle).
 if [[ ${HIST_FZF:-0} != 0 ]] && (( ${+commands[fzf]} )) && [[ -o interactive ]]; then
+  # nocov-start  — widget body needs zle; can't be exercised in CI.
   function _zsh_history_fzf_widget {
     emulate -L zsh
     local selected
@@ -161,4 +162,5 @@ if [[ ${HIST_FZF:-0} != 0 ]] && (( ${+commands[fzf]} )) && [[ -o interactive ]];
   }
   zle -N _zsh_history_fzf_widget
   bindkey '^R' _zsh_history_fzf_widget
+  # nocov-end
 fi

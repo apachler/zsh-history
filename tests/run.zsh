@@ -5,10 +5,9 @@
 # failed.
 
 emulate -L zsh
-setopt err_return no_unset pipe_fail
 
-local self_dir=${0:A:h}
-local plugin_file=${self_dir:h}/zsh-history.plugin.zsh
+typeset self_dir=${0:A:h}
+typeset plugin_file=${self_dir:h}/zsh-history.plugin.zsh
 export PLUGIN_FILE=$plugin_file
 
 if [[ ! -r $plugin_file ]]; then
@@ -16,29 +15,29 @@ if [[ ! -r $plugin_file ]]; then
   exit 2
 fi
 
-local -i total_pass=0 total_fail=0 file_failures=0
-local -a failed_files
+integer total_pass=0 total_fail=0 file_failures=0
+typeset -a failed_files
+typeset out tally rc
 
 for test_file in $self_dir/test_*.zsh; do
   print -P "%F{magenta}── ${test_file:t} ──%f"
-  local out
-  if out=$(zsh -c "
+  out=$(zsh -c "
     source \"$self_dir/helpers.zsh\"
     source \"$test_file\"
     print -- \"__TALLY__ \$_pass \$_fail\"
     exit \$_fail
-  " 2>&1); then
-    : # passed
-  else
+  " 2>&1)
+  rc=$?
+  if (( rc != 0 )); then
     (( file_failures++ ))
     failed_files+=$test_file
   fi
   # Print the file's output minus the tally marker
   print -- "${out%$'\n'__TALLY__*}"
-  local tally=${out##*__TALLY__ }
-  if [[ $tally = [0-9]##' '[0-9]## ]]; then
-    total_pass+=${tally%% *}
-    total_fail+=${tally##* }
+  tally=${out##*__TALLY__ }
+  if [[ $tally = <->' '<-> ]]; then
+    (( total_pass += ${tally%% *} ))
+    (( total_fail += ${tally##* } ))
   fi
 done
 

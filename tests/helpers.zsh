@@ -15,10 +15,11 @@ function it {
   print -P "  • %F{cyan}$*%f"
 }
 
-function _ok   { (( _pass++ )) }
+function _ok   { (( ++_pass ));  return 0 }
 function _bad  {
-  (( _fail++ ))
+  (( ++_fail ))
   print -ru2 -- "    ✗ ${_it:-(no description)}: $*"
+  return 0
 }
 
 function assert_eq {
@@ -87,4 +88,16 @@ function fresh_histfile {
   local f
   f=$(mktemp)
   print -- "$f"
+}
+
+# `quiet CMD …` — send stderr to /dev/null in a normal test run, but to
+# $COVERAGE_TRACE when the coverage script set up xtrace instrumentation.
+# Tests use this in place of `... 2>/dev/null` so they're quiet without
+# eating the trace data the coverage script needs.
+function quiet {
+  if [[ -n ${COVERAGE_TRACE-} ]]; then
+    "$@" 2>>"$COVERAGE_TRACE"
+  else
+    "$@" 2>/dev/null
+  fi
 }
