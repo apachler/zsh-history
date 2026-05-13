@@ -141,3 +141,24 @@ function _zsh_history_filter {
   return 0
 }
 add-zsh-hook zshaddhistory _zsh_history_filter
+
+# Opt-in fzf-driven ^R binding. Enable by setting HIST_FZF=1 before sourcing
+# (or in .zshrc before the plugin manager loads this plugin). The plugin stays
+# dependency-free by default; fzf only becomes part of the surface when both
+# the flag is on AND fzf is on $PATH AND the shell is interactive (has zle).
+if [[ ${HIST_FZF:-0} != 0 ]] && (( ${+commands[fzf]} )) && [[ -o interactive ]]; then
+  function _zsh_history_fzf_widget {
+    emulate -L zsh
+    local selected
+    selected=$(builtin fc -l 1 \
+      | fzf --tac --no-sort --tiebreak=index -e --query="$LBUFFER" \
+      | sed -E 's/^[[:space:]]*[0-9]+\*?[[:space:]]+//')
+    if [[ -n $selected ]]; then
+      BUFFER=$selected
+      CURSOR=$#BUFFER
+    fi
+    zle reset-prompt
+  }
+  zle -N _zsh_history_fzf_widget
+  bindkey '^R' _zsh_history_fzf_widget
+fi
