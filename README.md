@@ -4,6 +4,19 @@ A Zsh `history` wrapper, descended from Oh-My-Zsh's [`lib/history.zsh`](https://
 
 ## Installation
 
+### Oh My Zsh
+
+Clone the repo into Oh My Zsh's custom plugins directory and add `zsh-history` to your `plugins=(…)` array in `.zshrc`:
+
+```zsh
+git clone https://github.com/apachler/zsh-history \
+  "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-history"
+```
+
+```zsh
+plugins=(… zsh-history)
+```
+
 ### zplug
 
 ```zsh
@@ -16,12 +29,47 @@ zplug "apachler/zsh-history"
 zinit light apachler/zsh-history
 ```
 
+### antidote
+
+Add to `.zsh_plugins.txt`:
+
+```
+apachler/zsh-history
+```
+
+### antigen
+
+```zsh
+antigen bundle apachler/zsh-history
+```
+
+### zgenom
+
+```zsh
+zgenom load apachler/zsh-history
+```
+
+### sheldon
+
+Add to `plugins.toml`:
+
+```toml
+[plugins.zsh-history]
+github = "apachler/zsh-history"
+```
+
 ### Manual
 
 ```zsh
-source /path/to/zsh-history/zsh-history.plugin.zsh
+git clone https://github.com/apachler/zsh-history ~/.zsh/zsh-history
+```
+
+Then in `.zshrc`:
+
+```zsh
+source ~/.zsh/zsh-history/zsh-history.plugin.zsh
 # Optional: enable the completion file
-fpath=(/path/to/zsh-history/completions $fpath)
+fpath=(~/.zsh/zsh-history/completions $fpath)
 ```
 
 ## Usage
