@@ -1,5 +1,11 @@
 # ZSH History plugin
 
+[![smoke](https://github.com/apachler/zsh-history/actions/workflows/smoke.yml/badge.svg)](https://github.com/apachler/zsh-history/actions/workflows/smoke.yml)
+[![release](https://github.com/apachler/zsh-history/actions/workflows/release.yml/badge.svg)](https://github.com/apachler/zsh-history/actions/workflows/release.yml)
+[![latest release](https://img.shields.io/github/v/release/apachler/zsh-history?sort=semver&display_name=tag)](https://github.com/apachler/zsh-history/releases/latest)
+[![license](https://img.shields.io/github/license/apachler/zsh-history)](LICENSE)
+[![zsh](https://img.shields.io/badge/zsh-5.8%2B-brightgreen?logo=zsh)](https://www.zsh.org/)
+
 A Zsh `history` wrapper, descended from Oh-My-Zsh's [`lib/history.zsh`](https://github.com/ohmyzsh/ohmyzsh/blob/master/lib/history.zsh) and extended with search, delete, stats, sensitive-line filtering, and an opt-in fzf binding.
 
 ## Installation
