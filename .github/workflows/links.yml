@@ -1,0 +1,38 @@
+name: links
+
+# Verify URLs in Markdown files still resolve. Runs on PRs that touch
+# Markdown plus a weekly cron so rot in external links surfaces even when
+# nothing in the repo changes.
+
+on:
+  pull_request:
+    paths:
+      - '**.md'
+  schedule:
+    - cron: '0 7 * * 1'   # Mondays 07:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  markdown-link-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install lychee
+        run: |
+          curl -sSL https://github.com/lycheeverse/lychee/releases/latest/download/lychee-x86_64-unknown-linux-gnu.tar.gz \
+            | sudo tar -xz -C /usr/local/bin lychee
+          lychee --version
+
+      - name: Check links
+        run: |
+          lychee \
+            --no-progress \
+            --exclude-mail \
+            --max-redirects 5 \
+            --accept 200..=299,401,403,429 \
+            --verbose \
+            -- '**/*.md'
