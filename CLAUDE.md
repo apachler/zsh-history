@@ -19,10 +19,12 @@ Layout:
 ```
 zsh-history.plugin.zsh   # the plugin (entry point)
 completions/_history     # #compdef stub for the new flags
-.github/workflows/smoke.yml  # zsh -n + source + assertions
+.github/workflows/
+  smoke.yml              # zsh -n + source + behavior assertions (per push/PR)
+  release.yml            # cuts a GitHub release on `v*` tag push
 ```
 
-There is no build system, no test framework, and no linter (`shellcheck` has no zsh mode). CI is a thin shell-assertion smoke test.
+There is no build system, no test framework, and no linter (`shellcheck` has no zsh mode). CI is a thin shell-assertion smoke test; the release workflow builds notes from `git log` between tags, so keep commit summaries clean.
 
 ## Architecture notes
 
