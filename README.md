@@ -1,8 +1,11 @@
 # ZSH History plugin
 
 [![smoke](https://github.com/apachler/zsh-history/actions/workflows/smoke.yml/badge.svg)](https://github.com/apachler/zsh-history/actions/workflows/smoke.yml)
+[![test](https://github.com/apachler/zsh-history/actions/workflows/test.yml/badge.svg)](https://github.com/apachler/zsh-history/actions/workflows/test.yml)
+[![links](https://github.com/apachler/zsh-history/actions/workflows/links.yml/badge.svg)](https://github.com/apachler/zsh-history/actions/workflows/links.yml)
 [![release](https://github.com/apachler/zsh-history/actions/workflows/release.yml/badge.svg)](https://github.com/apachler/zsh-history/actions/workflows/release.yml)
 [![latest release](https://img.shields.io/github/v/release/apachler/zsh-history?sort=semver&display_name=tag)](https://github.com/apachler/zsh-history/releases/latest)
+[![coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)](.github/workflows/test.yml)
 [![license](https://img.shields.io/github/license/apachler/zsh-history)](LICENSE)
 [![zsh](https://img.shields.io/badge/zsh-5.8%2B-brightgreen?logo=zsh)](https://www.zsh.org/)
 

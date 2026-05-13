@@ -17,14 +17,34 @@ A Zsh plugin derived from Oh-My-Zsh's [`lib/history.zsh`](https://github.com/ohm
 Layout:
 
 ```
-zsh-history.plugin.zsh   # the plugin (entry point)
-completions/_history     # #compdef stub for the new flags
-.github/workflows/
-  smoke.yml              # zsh -n + source + behavior assertions (per push/PR)
-  release.yml            # cuts a GitHub release on `v*` tag push
+zsh-history.plugin.zsh        # the plugin (entry point)
+completions/_history          # #compdef stub for the new flags
+tests/
+  run.zsh                     # discovers and runs test_*.zsh in subshells
+  helpers.zsh                 # assertion primitives + `quiet` helper
+  coverage.zsh                # xtrace-based line coverage; gates on COVERAGE_MIN%
+  test_command_branches.zsh   # every flag of `zsh_history`
+  test_hist_stamps.zsh        # HIST_STAMPS dispatch + quoting
+  test_defaults.zsh           # HISTFILE/HISTSIZE/SAVEHIST defaults, unalias guard
+  test_filter.zsh             # ZSH_HISTORY_IGNORE / _zsh_history_filter
+  test_fzf_gate.zsh           # the three-way HIST_FZF gate
+.github/
+  dependabot.yml              # weekly Actions-version bump PRs
+  workflows/
+    smoke.yml                 # zsh -n + behavior assertions (Linux + macOS)
+    test.yml                  # tests + coverage gate (Linux + macOS)
+    links.yml                 # weekly lychee link-check on Markdown
+    release.yml               # cuts a GitHub release on `v*` tag push
 ```
 
-There is no build system, no test framework, and no linter (`shellcheck` has no zsh mode). CI is a thin shell-assertion smoke test; the release workflow builds notes from `git log` between tags, so keep commit summaries clean.
+No external test framework. The runner is plain zsh; assertions live in
+`tests/helpers.zsh`. Coverage is computed by re-running every test under
+`setopt xtrace` via a temp `ZDOTDIR/.zshenv`, then counting unique plugin
+lines in the trace divided by an `awk`-detected executable-line set
+(skips multi-line single-quoted string bodies, function-definition
+lines, and regions marked `# nocov-start` … `# nocov-end`).
+`shellcheck` has no zsh mode, so `zsh -n` plus the test suite is the
+only static gate.
 
 ## Architecture notes
 
@@ -46,9 +66,17 @@ There is no build system, no test framework, and no linter (`shellcheck` has no 
 - Quote `$HISTFILE` everywhere — paths can contain spaces (especially the `XDG_STATE_HOME` branch).
 - Don't shell out to `tac` or other GNU-only tools — macOS doesn't ship them. The `awk` approach in `history -d` is the pattern to follow when ordering matters.
 
-## Testing changes manually
+## Testing changes
 
-Source the file in a fresh shell and exercise each branch. There is no automated runner beyond the CI smoke test in `.github/workflows/smoke.yml`, which mirrors these checks.
+Run the assertion suite and the coverage gate:
+
+```zsh
+zsh tests/run.zsh                       # 52 cases, exits nonzero on any failure
+zsh tests/coverage.zsh                  # fails if coverage < ${COVERAGE_MIN:-80}%
+VERBOSE=1 zsh tests/coverage.zsh        # also prints which lines were missed
+```
+
+The plugin can also be exercised by hand in a fresh shell:
 
 ```zsh
 zsh -n zsh-history.plugin.zsh                # syntax
