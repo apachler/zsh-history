@@ -7,10 +7,10 @@
 
 function zsh_history {
   local clear list
-  local -a search_arg delete_arg
+  local -a search_arg delete_arg top_arg
   # -E keeps unknown flags (e.g. the HIST_STAMPS-derived `-f`/`-E`/`-i`/`-t`)
   # in $@ so they pass through to `fc`; -D strips the flags we recognize.
-  zparseopts -E -D c=clear l=list s+:=search_arg d+:=delete_arg
+  zparseopts -E -D c=clear l=list s+:=search_arg d+:=delete_arg -top:=top_arg
 
   if [[ -n "$clear" ]]; then
     # if -c provided, truncate the history file and push a fresh fc stack
@@ -67,6 +67,24 @@ function zsh_history {
     # The file is now clean; the current shell's $history will catch up the
     # next time it loads HISTFILE (i.e. in a new shell).
     print -ru2 -- "History event $n removed from $HISTFILE."
+  elif (( ${#top_arg} )); then
+    # `history --top N`: most-used commands by first word. Reads HISTFILE
+    # directly so the count covers the persisted history rather than just
+    # this shell's session, and so HIST_STAMPS formatting is bypassed.
+    local n=${top_arg[2]#=}   # tolerate `--top=5` accidental form
+    if [[ $n != <-> ]]; then
+      print -ru2 -- "history: --top expects a positive count, got: $n"
+      return 1
+    fi
+    builtin fc -A
+    awk '
+      {
+        sub(/^: [0-9]+:[0-9]+;/, "")     # strip extended-history prefix if present
+        if ($0 == "" || $0 ~ /^\\$/) next # skip blanks and continuation-only lines
+        n = split($0, a, /[[:space:]]+/)
+        if (a[1] != "") print a[1]
+      }
+    ' "$HISTFILE" | sort | uniq -c | sort -rn | head -n "$n"
   else
     # unless a numeric arg is provided, show all events (starting from 1).
     # Accept bare digits or a negative-prefixed count (e.g. `history -10`).
