@@ -1,0 +1,15 @@
+#compdef history zsh_history
+#description list, search, delete and rank shell history
+
+# Completions for the `history` alias / `zsh_history` function defined by
+# zsh-history.plugin.zsh. Plugin managers add this file's parent directory
+# to $fpath automatically; for manual installs add `completions/` to $fpath
+# before `compinit`.
+
+_arguments -s \
+  '(-c -l -s -d --top)-c[truncate HISTFILE and push a fresh history stack]' \
+  '(-c -s -d --top)-l[passthrough to fc -l]:event spec:' \
+  '(-c -l -d --top)-s[search history for an extended-regex pattern]:pattern:' \
+  '(-c -l -s --top)-d[remove event N from HISTFILE]:event number:' \
+  '(-c -l -s -d)--top[show the N most-used commands]:count:' \
+  '*::event spec:'
