@@ -7,7 +7,10 @@
 
 function zsh_history {
   local clear list
-  zparseopts -E c=clear l=list
+  local -a search_arg
+  # -E keeps unknown flags (e.g. the HIST_STAMPS-derived `-f`/`-E`/`-i`/`-t`)
+  # in $@ so they pass through to `fc`; -D strips the flags we recognize.
+  zparseopts -E -D c=clear l=list s+:=search_arg
 
   if [[ -n "$clear" ]]; then
     # if -c provided, truncate the history file and push a fresh fc stack
@@ -16,8 +19,14 @@ function zsh_history {
     fc -p "$HISTFILE"
     print -ru2 -- "History file deleted."
   elif [[ -n "$list" ]]; then
-    # if -l provided, run as if calling `fc' directly
-    builtin fc "$@"
+    # if -l provided, run as if calling `fc' directly (any stamp flag in $@
+    # passes through)
+    builtin fc -l "$@"
+  elif (( ${#search_arg} )); then
+    # `history -s PATTERN`: list all events and filter through grep.
+    # PATTERN is an extended-regex. Color is auto when stdout is a tty.
+    local pattern=${search_arg[2]}
+    builtin fc -l "$@" 1 | grep --color=auto -E -- "$pattern"
   else
     # unless a numeric arg is provided, show all events (starting from 1).
     # Accept bare digits or a negative-prefixed count (e.g. `history -10`).
