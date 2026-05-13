@@ -7,10 +7,10 @@
 
 function zsh_history {
   local clear list
-  local -a search_arg
+  local -a search_arg delete_arg
   # -E keeps unknown flags (e.g. the HIST_STAMPS-derived `-f`/`-E`/`-i`/`-t`)
   # in $@ so they pass through to `fc`; -D strips the flags we recognize.
-  zparseopts -E -D c=clear l=list s+:=search_arg
+  zparseopts -E -D c=clear l=list s+:=search_arg d+:=delete_arg
 
   if [[ -n "$clear" ]]; then
     # if -c provided, truncate the history file and push a fresh fc stack
@@ -27,6 +27,46 @@ function zsh_history {
     # PATTERN is an extended-regex. Color is auto when stdout is a tty.
     local pattern=${search_arg[2]}
     builtin fc -l "$@" 1 | grep --color=auto -E -- "$pattern"
+  elif (( ${#delete_arg} )); then
+    # `history -d N`: delete event N from HISTFILE and reload.
+    # Looks the command up in the in-memory $history array (it must already
+    # be loaded — i.e. N belongs to the current shell's view), then rewrites
+    # the file with the last occurrence of that command removed. Multi-line
+    # entries are refused to avoid mis-deleting unrelated events.
+    local n=${delete_arg[2]}
+    if [[ $n != <-> ]]; then
+      print -ru2 -- "history: -d expects a positive event number, got: $n"
+      return 1
+    fi
+    local cmd=${history[$n]-}
+    if [[ -z $cmd ]]; then
+      print -ru2 -- "history: no event $n in current shell history"
+      return 1
+    fi
+    if [[ $cmd = *$'\n'* ]]; then
+      print -ru2 -- "history: refusing to delete multi-line event $n"
+      return 1
+    fi
+    builtin fc -W
+    local tmp=${HISTFILE}.tmp.$$
+    awk -v needle=";$cmd" '
+      { lines[NR] = $0 }
+      END {
+        nlen = length(needle)
+        for (i = NR; i >= 1 && !target; i--) {
+          if (length(lines[i]) >= nlen &&
+              substr(lines[i], length(lines[i]) - nlen + 1) == needle) {
+            target = i
+          }
+        }
+        for (i = 1; i <= NR; i++) if (i != target) print lines[i]
+      }
+    ' "$HISTFILE" > "$tmp" || { rm -f "$tmp"; return 1 }
+    mv -- "$tmp" "$HISTFILE"
+    # NOTE: zsh has no API to remove an entry from the in-memory history list.
+    # The file is now clean; the current shell's $history will catch up the
+    # next time it loads HISTFILE (i.e. in a new shell).
+    print -ru2 -- "History event $n removed from $HISTFILE."
   else
     # unless a numeric arg is provided, show all events (starting from 1).
     # Accept bare digits or a negative-prefixed count (e.g. `history -10`).
