@@ -125,3 +125,19 @@ setopt hist_ignore_space      # ignore commands that start with space
 setopt hist_reduce_blanks     # collapse internal whitespace before saving
 setopt hist_verify            # show command with history expansion to user before running it
 setopt share_history          # share command history data
+
+# Sensitive-line filter. Users can set ZSH_HISTORY_IGNORE to a zsh glob/pattern
+# (matched against the full command line). Matching commands are dropped from
+# both the in-memory list and HISTFILE — useful for keeping tokens, passwords,
+# and `--secret=…` flags out of persisted history. Complements hist_ignore_space.
+#
+# Example: ZSH_HISTORY_IGNORE='(*--token=*|*AWS_SECRET*|*PASSWORD=*)'
+autoload -Uz add-zsh-hook
+function _zsh_history_filter {
+  emulate -L zsh
+  [[ -z ${ZSH_HISTORY_IGNORE-} ]] && return 0
+  # $1 is the command line being added (trailing newline stripped by zsh).
+  [[ ${1%$'\n'} = ${~ZSH_HISTORY_IGNORE} ]] && return 1
+  return 0
+}
+add-zsh-hook zshaddhistory _zsh_history_filter
