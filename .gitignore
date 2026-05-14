@@ -1,0 +1,14 @@
+# Test / coverage scratch
+*.tmp
+*.tmp.*
+.coverage/
+NOTES.md
+
+# Editor / OS noise
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
