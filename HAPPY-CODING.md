@@ -52,20 +52,6 @@ These have to be toggled in the GitHub repo settings UI. They're listed here so 
 
 ## P1 — High value, ship soon
 
-### `P1-1` Fix the `A && B || C` footgun at `zsh-history.plugin.zsh:91` — P1 · S
-
-- **Current:** `[[ ${@[-1]-} = (-|)<-> ]] && builtin fc -l "$@" || builtin fc -l "$@" 1`
-- **Problem:** Classic shell anti-pattern. If the `[[ ]]` test succeeds but `builtin fc -l "$@"` exits non-zero (malformed args, etc.), `builtin fc -l "$@" 1` *also* runs, duplicating output.
-- **Fix:**
-  ```zsh
-  if [[ ${@[-1]-} = (-|)<-> ]]; then
-    builtin fc -l "$@"
-  else
-    builtin fc -l "$@" 1
-  fi
-  ```
-- **Impact:** Closes the only known correctness footgun. Add a test case where `fc -l` would fail to lock in the behavior.
-
 ### `P1-2` Run CI on a zsh version matrix — P1 · M
 
 - **Rationale:** Right now CI runs whatever zsh ships on Ubuntu / macOS images. That's typically 5.8 / 5.9, but the floor is implicit. A regression that requires 5.9 wouldn't be caught for anyone still on 5.8.
@@ -90,13 +76,6 @@ These have to be toggled in the GitHub repo settings UI. They're listed here so 
 - **Implementation:** From `test.yml`, write a `coverage.json` shields.io endpoint JSON to a `badges` orphan branch (or a Gist). Update the README badge to `https://img.shields.io/endpoint?url=…coverage.json`. Use `schneegans/dynamic-badges-action`.
 - **Impact:** Real-time coverage signal. Low practical value here (always 100%), so deprioritize unless coverage drops by design (added `nocov` regions).
 
-### `P2-2` Typos linter — P2 · S
-
-- **Tool:** `crate-ci/typos` action. Catches the kind of typos shellcheck *would* catch if it spoke zsh — variable names, comments, identifiers.
-- **Rationale:** Zero false positives in practice, runs in <5s, configurable via `_typos.toml` if it ever finds an intentional non-word (e.g., "histfile" vs "histful").
-- **Implementation:** Add a `typos.yml` workflow with `crate-ci/typos-action`.
-- **Impact:** Catches embarrassing typos in `README`, `CLAUDE.md`, and comments.
-
 ### `P2-3` Add a `--help` flag — P2 · M
 
 - **Rationale:** Currently the only way to learn flags is `man fc` (which doesn't cover the wrapper) or the README. A first-class `history --help` is what every CLI user reaches for.
@@ -120,12 +99,6 @@ These have to be toggled in the GitHub repo settings UI. They're listed here so 
 - **Tool:** `actions/stale`. Auto-closes issues with no activity after N days, with a warning M days prior.
 - **Tradeoff:** Useful for keeping the queue clean; can feel hostile to a casual reporter. If used, set generous thresholds (e.g., 90/120 days).
 - **Impact:** Tidier backlog if/when issues accumulate.
-
-### `P2-7` Document the `tests/coverage.zsh` heuristic in `CLAUDE.md` — P2 · S
-
-- **Rationale:** The "what counts as an executable line" logic in `coverage.zsh` is an `awk` script that's intentionally conservative. A future contributor adding a new control-flow construct could be surprised when their lines aren't counted.
-- **Implementation:** Add a sub-section to `CLAUDE.md` explaining the exclusion rules (lone braces, single-quoted multiline strings, `nocov` markers, function-definition lines) and pointing to the awk script.
-- **Impact:** Reduces "why didn't my line count?" confusion.
 
 ---
 
@@ -248,4 +221,6 @@ Not committed to in any way; just thoughts a maintainer might find useful.
 
 ## Done
 
-(Move items here as they ship, keeping the rationale for future reference.)
+- **`P1-1` Fix `A && B || C` footgun at plugin.zsh:91** — replaced with explicit `if/else`. Both branches already covered by existing tests (`bare history` and `history -2`).
+- **`P2-2` Typos linter** — `.github/workflows/typos.yml` + `_typos.toml`. Empty config; add words only if real project terms get flagged.
+- **`P2-7` Coverage-heuristic docs in CLAUDE.md** — new "Coverage heuristic" subsection enumerates the awk script's exclusions (lone keywords, multi-line single-quoted strings, function headers, `nocov` markers) and the workflow for diagnosing missed lines.

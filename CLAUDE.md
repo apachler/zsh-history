@@ -40,11 +40,37 @@ tests/
 No external test framework. The runner is plain zsh; assertions live in
 `tests/helpers.zsh`. Coverage is computed by re-running every test under
 `setopt xtrace` via a temp `ZDOTDIR/.zshenv`, then counting unique plugin
-lines in the trace divided by an `awk`-detected executable-line set
-(skips multi-line single-quoted string bodies, function-definition
-lines, and regions marked `# nocov-start` … `# nocov-end`).
+lines in the trace divided by an `awk`-detected executable-line set.
 `shellcheck` has no zsh mode, so `zsh -n` plus the test suite is the
 only static gate.
+
+### Coverage heuristic
+
+`tests/coverage.zsh` decides which plugin lines *could* be executed by
+walking the file with `awk` and excluding:
+
+- **Blank and comment-only lines** — xtrace never emits these.
+- **Lone control-flow keywords** — `fi`, `done`, `esac`, `then`, `else`,
+  `do`, and standalone `{` / `}`. zsh's xtrace emits the *contents* of a
+  block, not the keyword line.
+- **Function-definition headers** — `function foo {` or `function foo {`-
+  on-its-own-line forms. Only the function body is traced when the
+  function is called.
+- **Bodies of multi-line single-quoted strings** — the `awk` script in
+  `history -d` and `history --top` spans many lines inside `'…'`. zsh
+  evaluates the whole string once, so only the opening line is traceable.
+  The heuristic tracks single-quote parity across lines (and strips
+  inline `# comments` first so apostrophes-in-comments don't flip state).
+- **Regions marked `# nocov-start` … `# nocov-end`** — used for the
+  interactive fzf widget, whose body needs `zle` and can't run in CI.
+
+**When adding a new control-flow construct** (a `select`, a here-doc-heavy
+function, a different multi-line quote style), check the missed-lines
+output of `VERBOSE=1 zsh tests/coverage.zsh` before assuming the test
+suite is incomplete. The line may simply not be considered executable —
+the heuristic is conservative on purpose. If it *is* executable but
+genuinely untestable (like the fzf widget), wrap it in `nocov` markers
+with a one-line comment explaining why.
 
 ## Architecture notes
 
