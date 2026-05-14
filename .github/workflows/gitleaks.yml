@@ -1,0 +1,31 @@
+name: gitleaks
+
+# Scan every PR and push to main for accidentally-committed secrets.
+# Cheap, fast, and catches the failure mode most likely to embarrass a
+# maintainer: a token in an example .zshrc or a fixture HISTFILE.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '0 6 * * 1'   # weekly drift catch
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gitleaks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # gitleaks needs full history to scan the log
+
+      - uses: gitleaks/gitleaks-action@83373cf2f8c4db6e24b41f1a325cba5c573efbd0  # v2.3.6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

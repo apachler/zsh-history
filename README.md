@@ -2,6 +2,7 @@
 
 [![smoke](https://github.com/apachler/zsh-history/actions/workflows/smoke.yml/badge.svg)](https://github.com/apachler/zsh-history/actions/workflows/smoke.yml)
 [![test](https://github.com/apachler/zsh-history/actions/workflows/test.yml/badge.svg)](https://github.com/apachler/zsh-history/actions/workflows/test.yml)
+[![scorecard](https://api.securityscorecards.dev/projects/github.com/apachler/zsh-history/badge)](https://securityscorecards.dev/viewer/?uri=github.com/apachler/zsh-history)
 [![links](https://github.com/apachler/zsh-history/actions/workflows/links.yml/badge.svg)](https://github.com/apachler/zsh-history/actions/workflows/links.yml)
 [![release](https://github.com/apachler/zsh-history/actions/workflows/release.yml/badge.svg)](https://github.com/apachler/zsh-history/actions/workflows/release.yml)
 [![latest release](https://img.shields.io/github/v/release/apachler/zsh-history?sort=semver&display_name=tag)](https://github.com/apachler/zsh-history/releases/latest)
@@ -10,6 +11,27 @@
 [![zsh](https://img.shields.io/badge/zsh-5.8%2B-brightgreen?logo=zsh)](https://www.zsh.org/)
 
 A Zsh `history` wrapper, descended from Oh-My-Zsh's [`lib/history.zsh`](https://github.com/ohmyzsh/ohmyzsh/blob/master/lib/history.zsh) and extended with search, delete, stats, sensitive-line filtering, and an opt-in fzf binding.
+
+## Features
+
+- `history -s PATTERN` — search history with extended-regex.
+- `history -d N` — remove an event from `$HISTFILE` (sensitive entries leaked to history).
+- `history --top N` — rank the most-used commands by first word.
+- `ZSH_HISTORY_IGNORE` filter — drop secrets matching a zsh glob before they hit disk.
+- Opt-in fzf `^R` widget — gated on `HIST_FZF=1`, fzf on `$PATH`, and an interactive shell.
+- Sensible defaults — `HISTFILE` honors `XDG_STATE_HOME`, `HISTSIZE`/`SAVEHIST` floors, the common history `setopt`s.
+- Zero runtime dependencies beyond `zsh`, `awk`, and `grep`. macOS + Linux tested.
+
+## Contents
+
+- [Installation](#installation)
+- [Usage](#usage)
+- [Configuration](#configuration)
+- [Caveats](#caveats)
+- [Development](#development)
+- [Contributing](#contributing)
+- [Security](#security)
+- [License](#license)
 
 ## Installation
 
@@ -115,3 +137,26 @@ All variables are optional. Set them in `.zshrc` *before* sourcing the plugin wh
 
 - `history -d N` rewrites `HISTFILE`, but zsh exposes no API to remove an entry from the running shell's in-memory list. The deletion is reflected in the next shell. Multi-line entries are refused to avoid mis-deleting unrelated commands.
 - `history -s` and `history --top` read from disk where appropriate; if `share_history` is on, recent commands from sibling shells appear after the next prompt.
+
+## Development
+
+```zsh
+zsh -n zsh-history.plugin.zsh   # syntax check
+zsh tests/run.zsh               # test suite (52 cases)
+zsh tests/coverage.zsh          # coverage gate
+VERBOSE=1 zsh tests/coverage.zsh # also lists missed lines
+```
+
+Architectural notes live in [`CLAUDE.md`](CLAUDE.md) — read it before touching the plugin file or adding a flag.
+
+## Contributing
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md). Participation is governed by the [Code of Conduct](CODE_OF_CONDUCT.md).
+
+## Security
+
+Do **not** open a public issue for security reports. See [`SECURITY.md`](SECURITY.md) for the private disclosure process.
+
+## License
+
+[MIT](LICENSE) © Andreas Pachler. Derived from Oh My Zsh's [`lib/history.zsh`](https://github.com/ohmyzsh/ohmyzsh/blob/master/lib/history.zsh), also MIT-licensed.
