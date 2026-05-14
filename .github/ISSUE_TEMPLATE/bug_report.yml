@@ -1,0 +1,82 @@
+name: Bug report
+description: Something in zsh-history isn't working as documented.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a bug. A minimal `.zshrc` snippet that reproduces the issue is the single most useful thing you can include.
+
+  - type: input
+    id: zsh-version
+    attributes:
+      label: zsh version
+      description: Output of `zsh --version`
+      placeholder: "zsh 5.9 (x86_64-apple-darwin23.0)"
+    validations:
+      required: true
+
+  - type: input
+    id: plugin-version
+    attributes:
+      label: Plugin version
+      description: Tag or commit SHA you have installed.
+      placeholder: v1.0.0 or e1b9f5c
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Linux
+        - macOS
+        - WSL
+        - FreeBSD
+        - Other (please specify in description)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: plugin-manager
+    attributes:
+      label: Plugin manager
+      options:
+        - Oh My Zsh
+        - zplug
+        - zinit
+        - antidote
+        - antigen
+        - zgenom
+        - sheldon
+        - Manual / source
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: Minimal steps. Include any `HIST_STAMPS`, `ZSH_HISTORY_IGNORE`, or `HIST_FZF` values you set.
+      placeholder: |
+        1. Add `zsh-history` to plugins
+        2. Run `history --top 5`
+        3. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true

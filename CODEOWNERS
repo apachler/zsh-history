@@ -1,0 +1,6 @@
+# Default reviewer for everything in this repo.
+*                       @apachler
+
+# Workflows and CI tighten the supply-chain surface — same reviewer, but
+# explicit so a PR that only touches CI doesn't fall under a broader override later.
+/.github/               @apachler

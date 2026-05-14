@@ -1,0 +1,38 @@
+name: Feature request
+description: Suggest a new flag, behavior, or integration.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please check `README.md` and existing issues first. This plugin keeps a small surface — proposals that add heavyweight dependencies or duplicate `fc` flags are unlikely to land.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What can't you do today?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: How would the feature behave? Include the flag name and example invocation if relevant.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Existing zsh features, other plugins, or workarounds you ruled out.
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - label: This works on both Linux and macOS (no GNU-only tools).
+        - label: This doesn't require new runtime dependencies beyond `zsh`, `awk`, and `grep`.

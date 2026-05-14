@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security report
+    url: https://github.com/apachler/zsh-history/security/advisories/new
+    about: Please report security issues privately, not via public issues.
+  - name: Question or discussion
+    url: https://github.com/apachler/zsh-history/discussions
+    about: Use Discussions for usage help and open-ended questions.
