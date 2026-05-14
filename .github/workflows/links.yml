@@ -15,6 +15,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: links-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   markdown-link-check:
     runs-on: ubuntu-latest
@@ -22,17 +26,16 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install lychee
+        # Pinned to a specific release rather than `latest` so a bad lychee
+        # release can't break this workflow without an explicit version bump.
+        env:
+          LYCHEE_VERSION: v0.18.1
         run: |
-          curl -sSL https://github.com/lycheeverse/lychee/releases/latest/download/lychee-x86_64-unknown-linux-gnu.tar.gz \
+          curl -sSL "https://github.com/lycheeverse/lychee/releases/download/${LYCHEE_VERSION}/lychee-x86_64-unknown-linux-gnu.tar.gz" \
             | sudo tar -xz -C /usr/local/bin lychee
           lychee --version
 
       - name: Check links
-        run: |
-          lychee \
-            --no-progress \
-            --exclude-mail \
-            --max-redirects 5 \
-            --accept 200..=299,401,403,429 \
-            --verbose \
-            -- '**/*.md'
+        # Behaviour is controlled by lychee.toml in the repo root. Keep the
+        # command thin so local runs match CI.
+        run: lychee --config lychee.toml --exclude-mail -- '**/*.md'
