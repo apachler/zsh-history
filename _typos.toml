@@ -1,0 +1,14 @@
+# Typos linter config. Empty by default — keep it that way unless a real
+# project term gets flagged. Adding individual words is fine; adding broad
+# regexes defeats the purpose of the tool.
+
+[default.extend-words]
+# example: "histful" = "histful"   # if a coined word ever lands
+
+[files]
+# The xtrace traces in tests/coverage.zsh can contain shell quoting that
+# trips the spell-checker. Nothing user-readable there anyway.
+extend-exclude = [
+  "*.trace",
+  ".git/",
+]
