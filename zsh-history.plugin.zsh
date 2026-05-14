@@ -88,7 +88,13 @@ function zsh_history {
   else
     # unless a numeric arg is provided, show all events (starting from 1).
     # Accept bare digits or a negative-prefixed count (e.g. `history -10`).
-    [[ ${@[-1]-} = (-|)<-> ]] && builtin fc -l "$@" || builtin fc -l "$@" 1
+    # Use if/else, not `A && B || C` — that pattern runs C when A passes
+    # but B fails (e.g. malformed args), producing duplicate output.
+    if [[ ${@[-1]-} = (-|)<-> ]]; then
+      builtin fc -l "$@"
+    else
+      builtin fc -l "$@" 1
+    fi
   fi
 }
 
